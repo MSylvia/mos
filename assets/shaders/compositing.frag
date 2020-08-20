@@ -4,6 +4,11 @@ in vec2 frag_uv;
 uniform sampler2D color_sampler;
 uniform sampler2D bloom_sampler;
 uniform float strength;
+uniform float random;
+
+float rand(vec2 co) {
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
 
 vec3 uncharted2_tonemap(vec3 x) {
   float A = 0.15;
@@ -101,13 +106,14 @@ void main() {
   float vignette = uv.x*uv.y * 15.0;
   vignette = pow(vignette, 0.25);
 
-#ifdef VHS
   // VHS effect
   float offset = 0.004 * (1.0 - vignette);
+  float r = (1.0 - rand(frag_uv * 0.01 + random) * 0.4) * 0.01;
+  offset = offset + r * 0.001;
+
   color.r = texture(color_sampler, frag_uv + vec2(offset, offset)).r;
   color.g = texture(color_sampler, frag_uv + vec2(-offset, -offset)).g;
   color.b = texture(color_sampler, frag_uv + vec2(offset, -offset)).b;
-#endif
 
 #ifdef VIGNETTE
   color.rgb *= vignette;
@@ -119,6 +125,8 @@ void main() {
   vec2 entry = mod(gl_FragCoord.xy, vec2(bayer_size, bayer_size));
   color.rgb = closest_color(vec4(color.rgb + spread * (bayer[int(entry.y) * int(bayer_size) + int(entry.x)] / bayer_divider - 0.5), 1.0)).xyz;
 #endif
+
+  color.rgb *= (1.0 - rand(frag_uv * 0.01 + random) * 0.4);
 
   // Tonemap
   // TODO: Check the tonemapping, compare to blender

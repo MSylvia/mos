@@ -35,5 +35,7 @@ Renderer::Compositing_program::Compositing_program() {
   color_sampler = glGetUniformLocation(program, "color_sampler");
   bloom_sampler = glGetUniformLocation(program, "bloom_sampler");
   bloom_strength = glGetUniformLocation(program, "strength");
+
+  random = glGetUniformLocation(program, "random");
 }
 } // namespace mos::gfx

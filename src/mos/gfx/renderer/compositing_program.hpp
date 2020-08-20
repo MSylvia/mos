@@ -7,4 +7,5 @@ struct Compositing_program : public Program {
   GLint color_sampler;
   GLint bloom_sampler;
   GLint bloom_strength;
+  GLint random;
 };

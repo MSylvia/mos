@@ -1116,6 +1116,9 @@ void Renderer::render(const Scenes &scenes, const glm::vec4 &color,
   float strength = 0.1f;
   glUniform1fv(compositing_program_.bloom_strength, 1, &strength);
 
+  float random = glm::linearRand(0.0f, 1.0f);
+  glUniform1fv(compositing_program_.random, 1, &random);
+
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
