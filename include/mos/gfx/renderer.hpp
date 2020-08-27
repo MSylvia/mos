@@ -204,16 +204,20 @@ private:
   Shadow_pass shadow_pass;
 
   /** Shadow maps. */
+
+  //TODO: Move moste of it to shadow pass
   const Render_buffer shadow_maps_render_buffer_;
   const std::array<Shadow_map_target, 4> shadow_maps_;
   const Post_target shadow_map_blur_target_;
   //TODO: blur directly into the shadowmaps, to save memory.
 
   /** Environment map targets. */
+  //TOOD: Create Environment pass
   const Render_buffer environment_render_buffer_;
   const std::array<Environment_map_target, 2> environment_maps_targets_;
   const Environment_map_target propagate_target_;
 
+  //TODO: Create Cascaded pass
   static constexpr const int cascade_count{4};
   //TODO: return all theese from the render method
   const std::array<Shadow_map_target, cascade_count> cascaded_shadow_maps_;
