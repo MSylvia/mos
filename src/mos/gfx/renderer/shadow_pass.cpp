@@ -31,9 +31,9 @@ void Renderer::Shadow_pass::render(Renderer &renderer,
       renderer.blur(renderer.shadow_maps_.at(i).texture,
                     renderer.shadow_map_blur_target_.frame_buffer,
                     renderer.shadow_map_blur_target_.texture,
-                    renderer.shadow_map_blur_targets_.at(i).frame_buffer,
-                    renderer.shadow_map_blur_targets_.at(i).texture,
-                    renderer.shadow_map_blur_targets_.at(i).resolution,
+                    renderer.shadow_maps_.at(i).frame_buffer,
+                    renderer.shadow_maps_.at(i).texture,
+                    renderer.shadow_map_blur_target_.resolution,
                     4);
     }
   }

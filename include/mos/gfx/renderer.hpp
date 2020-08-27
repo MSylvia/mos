@@ -208,7 +208,6 @@ private:
   const std::array<Shadow_map_target, 4> shadow_maps_;
   const Post_target shadow_map_blur_target_;
   //TODO: blur directly into the shadowmaps, to save memory.
-  const std::array<Post_target, 4> shadow_map_blur_targets_;
 
   /** Environment map targets. */
   const Render_buffer environment_render_buffer_;

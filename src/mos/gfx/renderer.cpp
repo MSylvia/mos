@@ -116,11 +116,6 @@ Renderer::Renderer(const glm::ivec2 &resolution, const int samples)
                             Shadow_map_target(shadow_maps_render_buffer_)},
       shadow_map_blur_target_(
           Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F)),
-      shadow_map_blur_targets_{
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F)},
       cascaded_shadow_map_blur_targets_{
           Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
           Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
@@ -274,19 +269,19 @@ void Renderer::render_scene(const Camera &camera, const Scene &scene,
 
   glActiveTexture(GL_TEXTURE1);
   // glBindTexture(GL_TEXTURE_2D, shadow_maps_[0].texture);
-  glBindTexture(GL_TEXTURE_2D, shadow_map_blur_targets_[0].texture);
+  glBindTexture(GL_TEXTURE_2D, shadow_maps_[0].texture);
 
   glActiveTexture(GL_TEXTURE2);
   // glBindTexture(GL_TEXTURE_2D, shadow_maps_[1].texture);
-  glBindTexture(GL_TEXTURE_2D, shadow_map_blur_targets_[1].texture);
+  glBindTexture(GL_TEXTURE_2D, shadow_maps_[1].texture);
 
   glActiveTexture(GL_TEXTURE3);
   // glBindTexture(GL_TEXTURE_2D, shadow_maps_[0].texture);
-  glBindTexture(GL_TEXTURE_2D, shadow_map_blur_targets_[2].texture);
+  glBindTexture(GL_TEXTURE_2D, shadow_maps_[2].texture);
 
   glActiveTexture(GL_TEXTURE4);
   // glBindTexture(GL_TEXTURE_2D, shadow_maps_[1].texture);
-  glBindTexture(GL_TEXTURE_2D, shadow_map_blur_targets_[3].texture);
+  glBindTexture(GL_TEXTURE_2D, shadow_maps_[3].texture);
 
   glActiveTexture(GL_TEXTURE5);
   glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_[0].texture);
