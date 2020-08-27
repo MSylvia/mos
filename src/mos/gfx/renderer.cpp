@@ -116,11 +116,6 @@ Renderer::Renderer(const glm::ivec2 &resolution, const int samples)
                             Shadow_map_target(shadow_maps_render_buffer_)},
       shadow_map_blur_target_(
           Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F)),
-      cascaded_shadow_map_blur_targets_{
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F),
-          Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F)},
       environment_render_buffer_(128),
       environment_maps_targets_{
           Environment_map_target(environment_render_buffer_),
@@ -245,20 +240,16 @@ void Renderer::render_scene(const Camera &camera, const Scene &scene,
   // Cascaded
 
   glActiveTexture(GL_TEXTURE13);
-  // glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[0].texture);
-  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_map_blur_targets_[0].texture);
+  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[0].texture);
 
   glActiveTexture(GL_TEXTURE14);
-  // glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[1].texture);
-  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_map_blur_targets_[1].texture);
+  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[1].texture);
 
   glActiveTexture(GL_TEXTURE15);
-  // glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[2].texture);
-  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_map_blur_targets_[2].texture);
+  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[2].texture);
 
   glActiveTexture(GL_TEXTURE16);
-  // glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[3].texture);
-  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_map_blur_targets_[3].texture);
+  glBindTexture(GL_TEXTURE_2D, cascaded_shadow_maps_[3].texture);
 
   // Cascaded Splits
   glUniform4fv(standard_program_.cascade_splits, 1,
@@ -859,9 +850,9 @@ void Renderer::render_cascaded_shadow_maps(const Models &models,
     blur(cascaded_shadow_maps_.at(cascade_idx).texture,
          shadow_map_blur_target_.frame_buffer,
          shadow_map_blur_target_.texture,
-         cascaded_shadow_map_blur_targets_.at(cascade_idx).frame_buffer,
-         cascaded_shadow_map_blur_targets_.at(cascade_idx).texture,
-         cascaded_shadow_map_blur_targets_.at(cascade_idx).resolution
+         cascaded_shadow_maps_.at(cascade_idx).frame_buffer,
+         cascaded_shadow_maps_.at(cascade_idx).texture,
+         shadow_map_blur_target_.resolution
          , 2);
   }
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
