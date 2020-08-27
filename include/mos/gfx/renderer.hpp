@@ -161,8 +161,11 @@ private:
   auto clear_depth() -> void;
   auto clear_color(const glm::vec4 &color) -> void;
   auto blur(GLuint input_texture,
-            const Post_target &buffer_target,
-            const Post_target &output_target,
+            const GLuint buffer_frame_buffer,
+            const GLuint buffer_texture,
+            const GLuint output_frame_buffer,
+            const GLuint output_texture,
+            glm::ivec2 resolution,
             float iterations = 6) -> void;
 
   const bool context_;

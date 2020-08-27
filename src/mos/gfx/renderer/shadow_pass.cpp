@@ -28,8 +28,13 @@ void Renderer::Shadow_pass::render(Renderer &renderer,
       glViewport(0, 0, renderer.shadow_maps_render_buffer_.resolution().x,
                  renderer.shadow_maps_render_buffer_.resolution().y);
 
-      renderer.blur(renderer.shadow_maps_.at(i).texture, renderer.shadow_map_blur_target_,
-           renderer.shadow_map_blur_targets_.at(i), 4);
+      renderer.blur(renderer.shadow_maps_.at(i).texture,
+                    renderer.shadow_map_blur_target_.frame_buffer,
+                    renderer.shadow_map_blur_target_.texture,
+                    renderer.shadow_map_blur_targets_.at(i).frame_buffer,
+                    renderer.shadow_map_blur_targets_.at(i).texture,
+                    renderer.shadow_map_blur_targets_.at(i).resolution,
+                    4);
     }
   }
 }

@@ -692,21 +692,25 @@ void Renderer::clear_color(const glm::vec4 &color) {
 }
 
 void Renderer::blur(const GLuint input_texture,
-                    const Post_target &buffer_target,
-                    const Post_target &output_target, const float iterations) {
-  glViewport(0, 0, GLsizei(output_target.resolution.x),
-             GLsizei(output_target.resolution.y));
+                    const GLuint buffer_frame_buffer,
+                    const GLuint buffer_texture,
+                    const GLuint output_frame_buffer,
+                    const GLuint output_texture,
+                    const glm::ivec2 resolution,
+                    const float iterations) {
+  glViewport(0, 0, GLsizei(resolution.x),
+             GLsizei(resolution.y));
   for (int i = 0; i < iterations; i++) {
     GLint horizontal = (i % 2 == 1);
-    glBindFramebuffer(GL_FRAMEBUFFER, horizontal ? output_target.frame_buffer
-                                                 : buffer_target.frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, horizontal ? output_frame_buffer
+                                                 : buffer_frame_buffer);
     glUseProgram(blur_program_.program);
     clear(glm::vec4(0.0f));
     glBindVertexArray(quad_.vertex_array);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, i == 0 ? input_texture
-                                        : horizontal ? buffer_target.texture
-                                                     : output_target.texture);
+                                        : horizontal ? buffer_texture
+                                                     : output_texture);
     glUniform1i(blur_program_.color_sampler, 0);
     glUniform1iv(blur_program_.horizontal, 1, &horizontal);
 
@@ -857,8 +861,13 @@ void Renderer::render_cascaded_shadow_maps(const Models &models,
       }
     }
 
-    blur(cascaded_shadow_maps_.at(cascade_idx).texture, shadow_map_blur_target_,
-         cascaded_shadow_map_blur_targets_.at(cascade_idx), 2);
+    blur(cascaded_shadow_maps_.at(cascade_idx).texture,
+         shadow_map_blur_target_.frame_buffer,
+         shadow_map_blur_target_.texture,
+         cascaded_shadow_map_blur_targets_.at(cascade_idx).frame_buffer,
+         cascaded_shadow_map_blur_targets_.at(cascade_idx).texture,
+         cascaded_shadow_map_blur_targets_.at(cascade_idx).resolution
+         , 2);
   }
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -1066,7 +1075,12 @@ void Renderer::render(const Scenes &scenes, const glm::vec4 &color,
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
-  blur(post_target0_.texture, post_target1_, post_target0_);
+  blur(post_target0_.texture,
+       post_target1_.frame_buffer,
+       post_target1_.texture,
+       post_target0_.frame_buffer,
+       post_target0_.texture,
+       post_target0_.resolution);
 
   // Render to screen
   glViewport(0, 0, resolution.x, resolution.y);
