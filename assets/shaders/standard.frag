@@ -66,7 +66,6 @@ struct Fragment {
   mat3 tbn;
   vec4[4] proj_shadow; //TODO: Rename
   vec4[4] cascaded_proj_shadow; // TODO: Rename
-  vec3 camera_to_surface;
 };
 
 uniform mat4 model;
@@ -156,6 +155,7 @@ void main() {
 
   vec4 roughnesss_from_map = texture(material.roughness_sampler, fragment.uv);
   float roughness = mix(material.roughness, roughnesss_from_map.r, roughnesss_from_map.a);
+  roughness = roughness * roughness;
 
   float ambient_occlusion_from_map = texture(material.ambient_occlusion_sampler, fragment.uv).r;
   float ambient_occlusion = material.ambient_occlusion * ambient_occlusion_from_map;
@@ -170,7 +170,7 @@ void main() {
   }
 
   const vec3 V = normalize(camera.position - fragment.position);
-  const vec3 R = -reflect(fragment.camera_to_surface, N);
+  const vec3 R = -reflect(V, N);
 
   const float NdotV = max(dot(N, V), 0.0);
 

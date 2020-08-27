@@ -7,7 +7,6 @@ struct Fragment {
     mat3 tbn;
     vec4[4] proj_shadow;
     vec4[4] cascaded_proj_shadow;
-    vec3 camera_to_surface;
 };
 
 struct Camera {
@@ -46,6 +45,5 @@ void main() {
     fragment.uv = uv;
     fragment.position = (model * vec4(position, 1.0)).xyz;
     fragment.normal = normalize(normal_matrix * normal);
-    fragment.camera_to_surface = normalize(camera.position - fragment.position);
     gl_Position = model_view_projection * vec4(position, 1.0);
 }
