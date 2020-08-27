@@ -107,14 +107,13 @@ private:
   #include "../../src/mos/gfx/renderer/box.hpp"
   #include "../../src/mos/gfx/renderer/quad.hpp"
 
+  #include "../../src/mos/gfx/renderer/shadow_pass.hpp"
+
   auto render_texture_targets(const Scene &scene) -> void;
 
   auto render_scene(const Camera &camera,
                     const Scene &scene,
                     const glm::ivec2 &resolution) -> void;
-
-  auto render_shadow_maps(const Models &models,
-                          const Spot_lights &spot_lights) -> void;
 
   auto render_cascaded_shadow_maps(const Models &models,
                                    const Directional_light &light,
@@ -150,11 +149,12 @@ private:
                     const glm::vec2 &resolution,
                     const Standard_program& program) -> void;
 
+  [[Deprecate]]
   auto render_model_depth(const Model &model,
-                          const glm::mat4 &transform,
                           const Camera &camera,
                           const glm::vec2 &resolution,
-                          const Depth_program& program) -> void;
+                          const Depth_program& program,
+                          const glm::mat4 &transform) -> void;
 
   /** Clear color and depth. */
   auto clear(const glm::vec4 &color) -> void;
@@ -197,6 +197,8 @@ private:
   const Texture_buffer_2D brdf_lut_texture_;
 
   std::array<int,2> cube_camera_index_;
+
+  Shadow_pass shadow_pass;
 
   /** Shadow maps. */
   const Render_buffer shadow_maps_render_buffer_;

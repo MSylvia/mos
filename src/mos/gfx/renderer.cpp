@@ -714,33 +714,6 @@ void Renderer::blur(const GLuint input_texture,
   }
 }
 
-void Renderer::render_shadow_maps(const Models &models,
-                                  const Spot_lights &lights) {
-  for (size_t i = 0; i < shadow_maps_.size(); i++) {
-    if (lights.at(i).strength > 0.0f) {
-      auto frame_buffer = shadow_maps_.at(i).frame_buffer;
-      glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer);
-      glClear(GL_DEPTH_BUFFER_BIT);
-      auto resolution = shadow_maps_render_buffer_.resolution();
-      glUseProgram(depth_program_.program);
-      glViewport(0, 0, resolution.x, resolution.y);
-
-      glUniform1i(depth_program_.albedo_sampler, 0);
-
-      for (auto &model : models) {
-        render_model_depth(model, glm::mat4(1.0f), lights.at(i).camera,
-                           resolution, depth_program_);
-      }
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-      glViewport(0, 0, shadow_maps_render_buffer_.resolution().x,
-                 shadow_maps_render_buffer_.resolution().y);
-
-      blur(shadow_maps_.at(i).texture, shadow_map_blur_target_,
-           shadow_map_blur_targets_.at(i), 4);
-    }
-  }
-}
 
 void Renderer::render_cascaded_shadow_maps(const Models &models,
                                            const Directional_light &light,
@@ -872,8 +845,8 @@ void Renderer::render_cascaded_shadow_maps(const Models &models,
     auto it = models_to_render.begin();
     while (it != models_to_render.end()) {
       if (light_camera.in_frustum(it->position(), it->radius())) {
-        render_model_depth(*it, glm::mat4(1.0f), light_camera, resolution,
-                           depth_program_);
+        render_model_depth(*it, light_camera, resolution,
+                           depth_program_, glm::mat4(1.0f));
         if (it->radius() > radius) {
           it++;
         } else {
@@ -1010,11 +983,11 @@ void Renderer::render_texture_targets(const Scene &scene) {
   }
 }
 
-void Renderer::render_model_depth(const Model &model,
-                                  const glm::mat4 &transform,
+void Renderer::render_model_depth(const Model &model,                                  
                                   const Camera &camera,
                                   const glm::vec2 &resolution,
-                                  const Depth_program &program) {
+                                  const Depth_program &program,
+                                  const glm::mat4 &transform) {
   if (camera.in_frustum(glm::vec3(transform[3]) + model.centroid(),
                         model.radius())) {
     const glm::mat4 mvp =
@@ -1030,12 +1003,12 @@ void Renderer::render_model_depth(const Model &model,
               ? textures_.at(model.material.albedo.texture->id()).texture
               : black_texture_.texture);
 
-      glUniformMatrix4fv(program.model_view_projection, 1, GL_FALSE,
+      glUniformMatrix4fv(depth_program_.model_view_projection, 1, GL_FALSE,
                          &mvp[0][0]);
 
-      glUniform3fv(program.albedo, 1,
+      glUniform3fv(depth_program_.albedo, 1,
                    glm::value_ptr(model.material.albedo.value));
-      glUniform3fv(program.emission, 1,
+      glUniform3fv(depth_program_.emission, 1,
                    glm::value_ptr(model.material.emission.value));
       const int num_elements =
           model.mesh ? model.mesh->triangles.size() * 3 : 0;
@@ -1043,8 +1016,7 @@ void Renderer::render_model_depth(const Model &model,
     }
   }
   for (const auto &child : model.models) {
-    render_model_depth(child, transform * model.transform, camera, resolution,
-                       program);
+    render_model_depth(child, camera, resolution, depth_program_, transform * model.transform);
   }
 }
 
@@ -1053,7 +1025,8 @@ void Renderer::render(const Scenes &scenes, const glm::vec4 &color,
   for (auto &scene : scenes) {
     load(scene.models);
   }
-  render_shadow_maps(scenes[0].models, scenes[0].spot_lights);
+  shadow_pass.render(*this, scenes[0].models, scenes[0].spot_lights);
+
   render_cascaded_shadow_maps(scenes[0].models, scenes[0].directional_light,
                               scenes[0].camera);
   render_environment(scenes[0], color);
