@@ -117,7 +117,10 @@ Renderer::Renderer(const glm::ivec2 &resolution, const int samples)
       shadow_map_blur_target_(
           Post_target(shadow_maps_render_buffer_.resolution(), GL_RG32F)),
       environment_render_buffer_(128),
-      environment_maps_targets_{
+      environment_maps_targets_write_{
+          Environment_map_target(environment_render_buffer_),
+          Environment_map_target(environment_render_buffer_)},
+      environment_maps_targets_read_{
           Environment_map_target(environment_render_buffer_),
           Environment_map_target(environment_render_buffer_)},
       propagate_target_(environment_render_buffer_) {
@@ -275,10 +278,10 @@ void Renderer::render_scene(const Camera &camera, const Scene &scene,
   glBindTexture(GL_TEXTURE_2D, shadow_maps_[3].texture);
 
   glActiveTexture(GL_TEXTURE5);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_[0].texture);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_read_[0].texture);
 
   glActiveTexture(GL_TEXTURE6);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_[1].texture);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_read_[1].texture);
 
   for (size_t i = 0; i < scene.environment_lights.size(); i++) {
     auto position = scene.environment_lights.at(i).position();
@@ -464,11 +467,11 @@ void Renderer::render_clouds(const Clouds &clouds,
     glUniform1i(program.albedo_sampler, 10);
 
     // TODO: Check
-    glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_[0].texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_write_[0].texture);
     glUniform1i(program.environment_samplers[0].map, 5);
 
     // TODO: Check
-    glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_[1].texture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_write_[1].texture);
     glUniform1i(program.environment_samplers[1].map, 6);
 
     glUniformMatrix4fv(program.model_view_projection, 1, GL_FALSE, &mvp[0][0]);
@@ -860,22 +863,17 @@ void Renderer::render_cascaded_shadow_maps(const Models &models,
 
 void Renderer::render_environment(const Scene &scene,
                                   const glm::vec4 &clear_color) {
-  for (size_t i = 0; i < environment_maps_targets_.size(); i++) {
+  for (size_t i = 0; i < environment_maps_targets_write_.size(); i++) {
     if (scene.environment_lights.at(i).strength > 0.0f) {
-      GLuint frame_buffer_id = environment_maps_targets_.at(i).frame_buffer;
+      GLuint frame_buffer_id = environment_maps_targets_write_.at(i).frame_buffer;
       glBindFramebuffer(GL_FRAMEBUFFER, frame_buffer_id);
 
-      auto texture_id = environment_maps_targets_.at(i).texture;
+      auto texture_id = environment_maps_targets_write_.at(i).texture;
 
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                              GL_TEXTURE_CUBE_MAP_POSITIVE_X +
                                  cube_camera_index_.at(i),
                              texture_id, 0);
-
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                             GL_TEXTURE_CUBE_MAP_POSITIVE_X +
-                                 cube_camera_index_.at(i),
-                             environment_maps_targets_.at(i).albedo, 0);
 
       clear(clear_color);
       auto resolution = environment_render_buffer_.resolution();
@@ -889,8 +887,22 @@ void Renderer::render_environment(const Scene &scene,
               ? 0
               : ++cube_camera_index_.at(i); // TODO PROBLEM
 
+
+      glBindFramebuffer(GL_FRAMEBUFFER, environment_maps_targets_read_.at(i).frame_buffer);
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                             GL_TEXTURE_CUBE_MAP_POSITIVE_X +
+                                 cube_camera_index_.at(i),
+                             environment_maps_targets_read_.at(i).texture, 0);
+
+
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, environment_maps_targets_write_[i].frame_buffer);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment_maps_targets_read_[i].frame_buffer);
+      glBlitFramebuffer(0, 0, resolution.x, resolution.y, 0, 0, resolution.x,
+                        resolution.y, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT,
+                        GL_NEAREST);
+
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      glBindTexture(GL_TEXTURE_CUBE_MAP, texture_id);
+      glBindTexture(GL_TEXTURE_CUBE_MAP, environment_maps_targets_read_.at(i).texture);
       if (cube_camera_index_.at(i) == 0) {
         glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
       }

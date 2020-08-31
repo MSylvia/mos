@@ -214,7 +214,8 @@ private:
   /** Environment map targets. */
   //TOOD: Create Environment pass
   const Render_buffer environment_render_buffer_;
-  const std::array<Environment_map_target, 2> environment_maps_targets_;
+  const std::array<Environment_map_target, 2> environment_maps_targets_write_;
+  const std::array<Environment_map_target, 2> environment_maps_targets_read_;
   const Environment_map_target propagate_target_;
 
   //TODO: Create Cascaded pass
