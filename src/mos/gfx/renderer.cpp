@@ -882,11 +882,6 @@ void Renderer::render_environment(const Scene &scene,
 
       render_scene(cube_camera, scene, resolution);
 
-      cube_camera_index_.at(i) =
-          cube_camera_index_.at(i) >= 5
-              ? 0
-              : ++cube_camera_index_.at(i); // TODO PROBLEM
-
 
       glBindFramebuffer(GL_FRAMEBUFFER, environment_maps_targets_read_.at(i).frame_buffer);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
@@ -894,6 +889,10 @@ void Renderer::render_environment(const Scene &scene,
                                  cube_camera_index_.at(i),
                              environment_maps_targets_read_.at(i).texture, 0);
 
+      cube_camera_index_.at(i) =
+          cube_camera_index_.at(i) >= 5
+              ? 0
+              : ++cube_camera_index_.at(i); // TODO PROBLEM
 
       glBindFramebuffer(GL_READ_FRAMEBUFFER, environment_maps_targets_write_[i].frame_buffer);
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, environment_maps_targets_read_[i].frame_buffer);
